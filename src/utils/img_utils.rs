@@ -130,6 +130,7 @@ pub fn find_closest_aspect_ratio(
             best_ratio_diff = ratio_diff;
             best_ratio = ratio;
         } else if (ratio_diff - best_ratio_diff).abs() < 1e-10 {
+            // 当多个候选比例具有相同的宽高比差异时，根据图像的实际面积来选择最优比例。
             let target_area = 0.5 * (image_size as f64).powi(2) * (ratio.0 * ratio.1) as f64;
             if area as f64 > target_area {
                 best_ratio = ratio;
@@ -148,6 +149,7 @@ pub fn dynamic_preprocess(
     let orig_width = image.width();
     let orig_height = image.height();
     let aspect_ratio = orig_width as f64 / orig_height as f64;
+    // 控制分块数量在2-9之间
     let target_ratios = generate_target_ratios_sorted(2, 9);
     let target_aspect_ratio = find_closest_aspect_ratio(
         aspect_ratio,
@@ -196,7 +198,7 @@ pub fn resize_with_edge_padding(
 ) -> DynamicImage {
     // 按图像原比例resize,可能不是输入的宽高
     let mut img = img.resize(width, height, image::imageops::FilterType::CatmullRom);
-    // 使用全0像素填充为输入宽高
+    // 使用输入像素颜色填充为输入宽高
     if img.height() != height || img.width() != width {
         let (img_h, img_w) = (img.height(), img.width());
         let img_buffer = img.to_rgb8();

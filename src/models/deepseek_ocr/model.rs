@@ -151,8 +151,8 @@ impl Attention {
     ) -> Result<(Tensor, Tensor)> {
         let (q_h, q_w) = q_size;
         let (k_h, k_w) = k_size;
-        let rh = self.get_rel_pos(q_h, k_h, rel_pos_h)?; // (h, k, dim)
-        let rw = self.get_rel_pos(q_w, k_w, rel_pos_w)?; // (w, k, dim)
+        let rh = self.get_rel_pos(q_h, k_h, rel_pos_h)?; // (q_h, k_h, dim)
+        let rw = self.get_rel_pos(q_w, k_w, rel_pos_w)?; // (q_w, k_w, dim)
         let (b, _, dim) = q.dims3()?;
         let r_q = q.reshape((b, q_h, q_w, dim))?.contiguous()?;
         let r_q_ = r_q.unsqueeze(D::Minus2)?; // (b, q_h, q_w, 1, dim)
@@ -610,7 +610,8 @@ impl CLIPVisionEmbeddings {
     }
 
     fn get_abs_pos(&self, tgt_size: usize) -> Result<Tensor> {
-        let abs_pos_new = self.pos_embeds.squeeze(0)?;
+        println!("self.pos_embeds: {:?}", self.pos_embeds);
+        let abs_pos_new = self.pos_embeds.clone();
         let (len, dim) = abs_pos_new.dims2()?;
         let src_size = ((len - 1) as f32).sqrt() as usize;
         let tgt_size = (tgt_size as f32).sqrt() as usize;
@@ -991,17 +992,6 @@ impl DeepseekV2MoE {
         Ok(final_xs)
     }
 
-    // pub fn farward(&self, xs: &Tensor) -> Result<Tensor> {
-    //     let identity = xs.clone();
-    //     let (bs, seq_len, embedding_dim) = xs.dims3()?;
-    //     let (topk_idx, topk_weight) = self.gate.forward(xs)?;
-    //     let xs = xs.reshape((bs * seq_len, embedding_dim))?;
-    //     let xs = self.moe_infer(&xs, &topk_idx, &topk_weight)?;
-    //     let xs = xs.reshape((bs, seq_len, embedding_dim))?;
-    //     let xs_shared_experts = self.shared_experts.forward(&identity)?;
-    //     let xs = xs.add(&xs_shared_experts)?;
-    //     Ok(xs)
-    // }
 }
 
 impl Module for DeepseekV2MoE {

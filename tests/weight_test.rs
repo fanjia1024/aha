@@ -71,7 +71,7 @@ fn deepseekocr_weight() -> Result<()> {
     for m in &model_list {
         let weights = safetensors::load(m, &device)?;
         for (key, tensor) in weights.iter() {
-            if key.contains("lm_head") {
+            if key.contains("rel_pos_h") {
                 println!("=== {} === {:?}", key, tensor.shape());
             }
             // println!("=== {} === {:?}", key, tensor.shape());
